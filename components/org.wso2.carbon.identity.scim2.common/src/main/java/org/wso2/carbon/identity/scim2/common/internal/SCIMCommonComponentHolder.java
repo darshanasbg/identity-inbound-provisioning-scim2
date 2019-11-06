@@ -52,15 +52,6 @@ public class SCIMCommonComponentHolder {
         SCIMCommonComponentHolder.realmService = realmService;
     }
 
-    public static ClaimMetadataManagementService getClaimManagementService() {
-
-        return claimManagementService;
-    }
-
-    public static void setClaimManagementService(ClaimMetadataManagementService claimManagementService) {
-
-        SCIMCommonComponentHolder.claimManagementService = claimManagementService;
-    }
     /**
      * Get role permission management service.
      *
@@ -80,5 +71,24 @@ public class SCIMCommonComponentHolder {
                                                                   rolePermissionManagementService) {
 
         SCIMCommonComponentHolder.rolePermissionManagementService = rolePermissionManagementService;
+    }
+
+    /**
+     * Get claim metadata management service.
+     * @return
+     */
+    public static ClaimMetadataManagementService getClaimManagementService() {
+
+        return claimManagementService;
+    }
+
+    /**
+     * Set claim metadata management service.
+     *
+     * @param claimManagementService
+     */
+    public static void setClaimManagementService(ClaimMetadataManagementService claimManagementService) {
+
+        SCIMCommonComponentHolder.claimManagementService = claimManagementService;
     }
 }

@@ -179,7 +179,7 @@ public class SCIMCommonComponent {
     }
 
     /**
-     * Set claim metadata management service implementation
+     * Set claim metadata management service implementation.
      *
      * @param claimManagementService ClaimManagementService
      */
@@ -198,7 +198,7 @@ public class SCIMCommonComponent {
     }
 
     /**
-     * Unset claim metadata management service implementation
+     * Unset claim metadata management service implementation.
      */
     protected void unsetClaimMetadataManagementService(ClaimMetadataManagementService claimManagementService) {
 
