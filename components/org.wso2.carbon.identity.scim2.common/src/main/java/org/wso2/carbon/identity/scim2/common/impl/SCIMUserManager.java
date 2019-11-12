@@ -3456,6 +3456,7 @@ public class SCIMUserManager implements UserManager {
     }
 
     /**
+     * Get mapped local claims for the claims in specified external claim dialect.
      *
      * @param externalClaimDialect
      * @param tenantDomain
@@ -3485,12 +3486,19 @@ public class SCIMUserManager implements UserManager {
         }
     }
 
-    private LocalClaim getMappedLocalClaim(ExternalClaim scimClaim, List<LocalClaim> localClaimList) {
+    /**
+     * Get mapped local claim for specified external claim.
+     *
+     * @param externalClaim
+     * @param localClaimList
+     * @return
+     */
+    private LocalClaim getMappedLocalClaim(ExternalClaim externalClaim, List<LocalClaim> localClaimList) {
 
         LocalClaim mappedLocalClaim = null;
         if (localClaimList != null) {
             for (LocalClaim localClaim : localClaimList) {
-                if (localClaim.getClaimURI().equals(scimClaim.getMappedLocalClaim())) {
+                if (localClaim.getClaimURI().equals(externalClaim.getMappedLocalClaim())) {
                     mappedLocalClaim = localClaim;
                     break;
                 }
@@ -3499,6 +3507,13 @@ public class SCIMUserManager implements UserManager {
         return mappedLocalClaim;
     }
 
+    /**
+     * Get filtered claims that can be used in the schema attributes.
+     * This will allow only the username claim or the claims with supported-by-default value true.
+     *
+     * @param scimClaimToLocalClaimMap
+     * @return
+     */
     private Map<String, Attribute> getFilteredUserSchemaAttributes(Map<ExternalClaim, LocalClaim>
                                                                            scimClaimToLocalClaimMap) {
 
@@ -3530,6 +3545,13 @@ public class SCIMUserManager implements UserManager {
         return SCIMConstants.UserSchemaConstants.USER_NAME_URI.equals(scimClaim.getClaimURI());
     }
 
+    /**
+     * Build and return the Charon Attribute representation using the claim metadata.
+     *
+     * @param scimClaim
+     * @param mappedLocalClaim
+     * @return
+     */
     private Attribute getSchemaAttributes(ExternalClaim scimClaim, LocalClaim mappedLocalClaim) {
 
         String name = scimClaim.getClaimURI();
@@ -3568,6 +3590,12 @@ public class SCIMUserManager implements UserManager {
         }
     }
 
+    /**
+     * Populates basic Charon Attributes details using the claim metadata.
+     *
+     * @param mappedLocalClaim
+     * @param attribute
+     */
     private void pupulateBasicAttributes(LocalClaim mappedLocalClaim, AbstractAttribute attribute) {
 
         if (mappedLocalClaim != null) {
@@ -3602,7 +3630,15 @@ public class SCIMUserManager implements UserManager {
                     mappedLocalClaim.getClaimProperty(ClaimConstants.REGULAR_EXPRESSION_PROPERTY));
         }
     }
-    private Map<String, Attribute> buildHierarchicalAttributeMap(Map<String, Attribute> filteredFlatAttributeMap) {
+
+    /**
+     * Builds complex attribute schema with correct sub attributes using the flat attribute map.
+     *
+     * @param filteredFlatAttributeMap
+     * @return
+     */
+    private Map<String, Attribute> buildHierarchicalAttributeMap(Map<String, Attribute> filteredFlatAttributeMap)
+            throws CharonException {
 
         Map<String, Attribute> simpleAttributeMap = new HashMap<>();
 
@@ -3624,8 +3660,17 @@ public class SCIMUserManager implements UserManager {
         return simpleAttributeMap;
     }
 
+    /**
+     * Set sub attribute to the correct parent attribute and return complex parent attribute.
+     *
+     * @param attribute
+     * @param flatAttributeMap
+     * @param complexAttributeMap
+     * @return
+     */
     private ComplexAttribute handleSubAttribute(Attribute attribute, Map<String, Attribute> flatAttributeMap,
-                                                Map<String, ComplexAttribute> complexAttributeMap) {
+                                                Map<String, ComplexAttribute> complexAttributeMap)
+            throws CharonException {
 
         String attributeName = attribute.getName();
         String parentAttributeName = attributeName.substring(0, attributeName.indexOf("."));
@@ -3643,12 +3688,7 @@ public class SCIMUserManager implements UserManager {
             complexAttributeMap.put(parentAttributeName, parentAttribute);
         }
         attribute = getAttributeWithNewName(attribute, subAttributeName);
-
-        try {
-            parentAttribute.setSubAttribute(attribute);
-        } catch (CharonException e) {
-            // TODO: 11/12/19 Charon does not throws an exception in the impl. Fix at Charon level to avoid throwing.
-        }
+        parentAttribute.setSubAttribute(attribute);
 
         return parentAttribute;
     }
