@@ -1388,12 +1388,12 @@ public class SCIMUserManager implements UserManager {
 
         if (claimMetadataManagementService != null) {
             try {
-                attributes.putAll(getAllAttributesForDialect(SCIMCommonConstants.SCIM_CORE_CLAIM_DIALECT, domainName));
-                attributes.putAll(getAllAttributesForDialect(SCIMCommonConstants.SCIM_USER_CLAIM_DIALECT, domainName));
+                attributes.putAll(getMappedAttributes(SCIMCommonConstants.SCIM_CORE_CLAIM_DIALECT, domainName));
+                attributes.putAll(getMappedAttributes(SCIMCommonConstants.SCIM_USER_CLAIM_DIALECT, domainName));
 
                 if (SCIMUserSchemaExtensionBuilder.getInstance().getExtensionSchema() != null) {
                     String extensionURI = SCIMUserSchemaExtensionBuilder.getInstance().getExtensionSchema().getURI();
-                    attributes.putAll(getAllAttributesForDialect(extensionURI, domainName));
+                    attributes.putAll(getMappedAttributes(extensionURI, domainName));
                 }
             } catch (ClaimMetadataException e) {
                 throw new UserStoreException("Error in filtering users by multi attributes.", e);
@@ -1437,7 +1437,7 @@ public class SCIMUserManager implements UserManager {
      * @return
      * @throws ClaimMetadataException
      */
-    private Map<String, String> getAllAttributesForDialect(String extClaimDialectName, String domainName)
+    private Map<String, String> getMappedAttributes(String extClaimDialectName, String domainName)
             throws ClaimMetadataException {
 
         Map<String, String> attributes = new HashMap<>();
