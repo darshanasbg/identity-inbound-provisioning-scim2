@@ -1438,7 +1438,7 @@ public class SCIMUserManager implements UserManager {
      * @throws ClaimMetadataException
      */
     private Map<String, String> getMappedAttributes(String extClaimDialectName, String domainName)
-            throws ClaimMetadataException {
+            throws CharonException {
 
         Map<String, String> attributes = new HashMap<>();
         Map<ExternalClaim, LocalClaim> externalClaimLocalClaimMap = getMappedLocalClaimsForDialect(extClaimDialectName,
@@ -3441,34 +3441,48 @@ public class SCIMUserManager implements UserManager {
     @Override
     public List<Attribute> getUserSchema() throws CharonException {
 
-        try {
-            Map<ExternalClaim, LocalClaim> scimClaimToLocalClaimMap =
-                    getMappedLocalClaimsForDialect(SCIMCommonConstants.SCIM_USER_CLAIM_DIALECT, tenantDomain);
+        Map<ExternalClaim, LocalClaim> scimClaimToLocalClaimMap =
+                getMappedLocalClaimsForDialect(SCIMCommonConstants.SCIM_USER_CLAIM_DIALECT, tenantDomain);
 
-            Map<String, Attribute> filteredFlatAttributeMap = getFilteredUserSchemaAttributes(scimClaimToLocalClaimMap);
-            Map<String, Attribute> hierarchicalAttributeMap = buildHierarchicalAttributeMap(filteredFlatAttributeMap);
-            return new ArrayList(hierarchicalAttributeMap.values());
+        Map<String, Attribute> filteredFlatAttributeMap = getFilteredUserSchemaAttributes(scimClaimToLocalClaimMap);
+        Map<String, Attribute> hierarchicalAttributeMap = buildHierarchicalAttributeMap(filteredFlatAttributeMap);
+
+        List<Attribute> userSchemaAttributesList = new ArrayList(hierarchicalAttributeMap.values());
+        if (log.isDebugEnabled()) {
+            logSchemaAttributes(userSchemaAttributesList);
+        }
+
+        return userSchemaAttributesList;
+    }
+
+    /**
+     *
+     * @param externalClaimDialect
+     * @param tenantDomain
+     * @return
+     * @throws ClaimMetadataException
+     */
+    private Map<ExternalClaim, LocalClaim> getMappedLocalClaimsForDialect(String externalClaimDialect,
+                                                                          String tenantDomain) throws CharonException {
+
+        try {
+            Map<ExternalClaim, LocalClaim> externalClaimLocalClaimMap = new HashMap<>();
+            List<ExternalClaim> externalClaimList =
+                    this.claimMetadataManagementService.getExternalClaims(externalClaimDialect, tenantDomain);
+            List<LocalClaim> localClaimList = this.claimMetadataManagementService.getLocalClaims(tenantDomain);
+
+            if (externalClaimList != null && localClaimList != null) {
+
+                for (ExternalClaim externalClaim : externalClaimList) {
+                    LocalClaim mappedLocalClaim = getMappedLocalClaim(externalClaim, localClaimList);
+                    externalClaimLocalClaimMap.put(externalClaim, mappedLocalClaim);
+                }
+            }
+            return externalClaimLocalClaimMap;
+
         } catch (ClaimMetadataException e) {
             throw new CharonException("Error while retrieving schema attribute details.", e);
         }
-    }
-
-    private Map<ExternalClaim, LocalClaim> getMappedLocalClaimsForDialect(String externalClaimDialect,
-                                                                          String tenantDomain) throws ClaimMetadataException {
-
-        Map<ExternalClaim, LocalClaim> externalClaimLocalClaimMap = new HashMap<>();
-        List<ExternalClaim> externalClaimList =
-                this.claimMetadataManagementService.getExternalClaims(externalClaimDialect, tenantDomain);
-        List<LocalClaim> localClaimList = this.claimMetadataManagementService.getLocalClaims(tenantDomain);
-
-        if (externalClaimList != null && localClaimList != null) {
-
-            for (ExternalClaim externalClaim : externalClaimList) {
-                LocalClaim mappedLocalClaim = getMappedLocalClaim(externalClaim, localClaimList);
-                externalClaimLocalClaimMap.put(externalClaim, mappedLocalClaim);
-            }
-        }
-        return externalClaimLocalClaimMap;
     }
 
     private LocalClaim getMappedLocalClaim(ExternalClaim scimClaim, List<LocalClaim> localClaimList) {
@@ -3661,5 +3675,24 @@ public class SCIMUserManager implements UserManager {
         }
 
         return newAttribute;
+    }
+
+    private void logSchemaAttributes(List<Attribute> userSchemaAttributesList) {
+
+        StringBuffer sb = new StringBuffer();
+        sb.append("Final user schema attribute list calculated as: [");
+        boolean isFirst = true;
+        for (Attribute userSchemaAttribute: userSchemaAttributesList) {
+
+            if (!isFirst) {
+                sb.append(", ");
+            }
+
+            sb.append("{");
+            sb.append(userSchemaAttribute.getName());
+            sb.append("}");
+        }
+        sb.append("]");
+        log.debug(sb);
     }
 }
