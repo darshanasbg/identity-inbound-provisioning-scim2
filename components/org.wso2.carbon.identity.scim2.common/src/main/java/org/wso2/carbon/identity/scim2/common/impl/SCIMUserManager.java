@@ -1136,7 +1136,7 @@ public class SCIMUserManager implements UserManager {
         Map<String, String> attributes;
         try {
             attributes = getAllAttributes(domainName);
-        } catch (UserStoreException e) {
+        } catch (CharonException e) {
             String errorMessage = String.format("Error while retrieving attributes for the domain %s.", domainName);
             throw new CharonException(errorMessage, e);
         }
@@ -1380,25 +1380,20 @@ public class SCIMUserManager implements UserManager {
      *
      * @param domainName Domain name.
      * @return All attributes of user.
-     * @throws UserStoreException
+     * @throws CharonException
      */
-    private Map<String, String> getAllAttributes(String domainName) throws UserStoreException {
+    private Map<String, String> getAllAttributes(String domainName) throws CharonException {
 
         Map<String, String> attributes = new HashMap<>();
 
         if (claimMetadataManagementService != null) {
-            try {
-                attributes.putAll(getMappedAttributes(SCIMCommonConstants.SCIM_CORE_CLAIM_DIALECT, domainName));
-                attributes.putAll(getMappedAttributes(SCIMCommonConstants.SCIM_USER_CLAIM_DIALECT, domainName));
+            attributes.putAll(getMappedAttributes(SCIMCommonConstants.SCIM_CORE_CLAIM_DIALECT, domainName));
+            attributes.putAll(getMappedAttributes(SCIMCommonConstants.SCIM_USER_CLAIM_DIALECT, domainName));
 
-                if (SCIMUserSchemaExtensionBuilder.getInstance().getExtensionSchema() != null) {
-                    String extensionURI = SCIMUserSchemaExtensionBuilder.getInstance().getExtensionSchema().getURI();
-                    attributes.putAll(getMappedAttributes(extensionURI, domainName));
-                }
-            } catch (ClaimMetadataException e) {
-                throw new UserStoreException("Error in filtering users by multi attributes.", e);
+            if (SCIMUserSchemaExtensionBuilder.getInstance().getExtensionSchema() != null) {
+                String extensionURI = SCIMUserSchemaExtensionBuilder.getInstance().getExtensionSchema().getURI();
+                attributes.putAll(getMappedAttributes(extensionURI, domainName));
             }
-
         } else {
             try {
                 ClaimMapping[] userClaims;
@@ -1423,7 +1418,7 @@ public class SCIMUserManager implements UserManager {
                     }
                 }
             } catch (UserStoreException e) {
-                throw new UserStoreException("Error in filtering users by multi attributes ", e);
+                throw new CharonException("Error in filtering users by multi attributes ", e);
             }
         }
         return attributes;
