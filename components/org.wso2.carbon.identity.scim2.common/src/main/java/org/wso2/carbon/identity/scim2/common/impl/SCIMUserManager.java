@@ -3682,34 +3682,15 @@ public class SCIMUserManager implements UserManager {
             pupulateBasicAttributes(null, parentAttribute);
             complexAttributeMap.put(parentAttributeName, parentAttribute);
         }
-        attribute = getAttributeWithNewName(attribute, subAttributeName);
+
+        if (attribute instanceof AbstractAttribute) {
+            ((AbstractAttribute) attribute).setName(subAttributeName);
+        } else {
+            throw new CharonException("Unsupported attribute type");
+        }
         parentAttribute.setSubAttribute(attribute);
 
         return parentAttribute;
-    }
-
-    private Attribute getAttributeWithNewName(Attribute attribute, String newName) {
-
-        SimpleAttribute newAttribute = new SimpleAttribute(newName, null);
-        newAttribute.setDescription(attribute.getDescription());
-        newAttribute.setRequired(attribute.getRequired());
-        newAttribute.setMutability(attribute.getMutability());
-        newAttribute.setCaseExact(attribute.getCaseExact());
-        newAttribute.setType(attribute.getType());
-        newAttribute.setMultiValued(attribute.getMultiValued());
-        newAttribute.setReturned(attribute.getReturned());
-        newAttribute.setUniqueness(attribute.getUniqueness());
-
-        try {
-            Map<String, String> customAttributes = attribute.getAttributeProperties();
-            for (Map.Entry<String, String> entry : customAttributes.entrySet()) {
-                newAttribute.addAttributeProperty(entry.getKey(), entry.getValue());
-            }
-        } catch (NotImplementedException e) {
-            // Ignore if the method not implemented.
-        }
-
-        return newAttribute;
     }
 
     private void logSchemaAttributes(List<Attribute> userSchemaAttributesList) {
