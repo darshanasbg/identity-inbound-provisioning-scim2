@@ -204,7 +204,9 @@ public class SCIMUserManager implements UserManager {
             }
             Map<String, String> claimsInLocalDialect = SCIMCommonUtils.convertSCIMtoLocalDialect(claimsMap);
             carbonUM.addUser(user.getUserName(), user.getPassword(), null, claimsInLocalDialect, null);
-            log.info("User: " + user.getUserName() + " is created through SCIM.");
+            if (log.isDebugEnabled()) {
+                log.debug("User: " + user.getUserName() + " is created through SCIM.");
+            }
 
             // Get Claims related to SCIM claim dialect
             Map<String, String> scimToLocalClaimsMap = SCIMCommonUtils.getSCIMtoLocalMappings();
@@ -272,7 +274,9 @@ public class SCIMUserManager implements UserManager {
                 scimUser = this.getSCIMUser(userNames[0], requiredClaimsInLocalDialect, scimToLocalClaimsMap);
                 //set the schemas of the scim user
                 scimUser.setSchemas();
-                log.info("User: " + scimUser.getUserName() + " is retrieved through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("User: " + scimUser.getUserName() + " is retrieved through SCIM.");
+                }
             }
 
         } catch (UserStoreException e) {
@@ -326,7 +330,9 @@ public class SCIMUserManager implements UserManager {
                             userStoreDomainName + ". SCIM is not enabled for user store: " + userStoreDomainName);
                 }
                 carbonUM.deleteUser(userName);
-                log.info("User: " + userName + " is deleted through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("User: " + userName + " is deleted through SCIM.");
+                }
             }
 
         } catch (org.wso2.carbon.user.core.UserStoreException e) {
@@ -695,7 +701,9 @@ public class SCIMUserManager implements UserManager {
             if (user.getPassword() != null) {
                 carbonUM.updateCredentialByAdmin(user.getUserName(), user.getPassword());
             }
-            log.info("User: " + user.getUserName() + " updated through SCIM.");
+            if (log.isDebugEnabled()) {
+                log.debug("User: " + user.getUserName() + " updated through SCIM.");
+            }
             return getUser(user.getId(),requiredAttributes);
         } catch (UserStoreException e) {
             handleErrorsOnUserNameAndPasswordPolicy(e);
@@ -1604,7 +1612,9 @@ public class SCIMUserManager implements UserManager {
             } else {
                 //set the schemas of the scim user
                 scimUser.setSchemas();
-                log.info("User: " + scimUser.getUserName() + " is retrieved through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("User: " + scimUser.getUserName() + " is retrieved through SCIM.");
+                }
                 return scimUser;
             }
         } catch (UserStoreException e) {
@@ -1723,13 +1733,17 @@ public class SCIMUserManager implements UserManager {
                 scimGroupHandler.createSCIMAttributes(group);
                 carbonUM.addRole(group.getDisplayName(),
                         members.toArray(new String[members.size()]), null, false);
-                log.info("Group: " + group.getDisplayName() + " is created through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("Group: " + group.getDisplayName() + " is created through SCIM.");
+                }
             } else {
                 //add other scim attributes in the identity DB since user store doesn't support some attributes.
                 SCIMGroupHandler scimGroupHandler = new SCIMGroupHandler(carbonUM.getTenantId());
                 scimGroupHandler.createSCIMAttributes(group);
                 carbonUM.addRole(group.getDisplayName(), null, null, false);
-                log.info("Group: " + group.getDisplayName() + " is created through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("Group: " + group.getDisplayName() + " is created through SCIM.");
+                }
             }
         } catch (UserStoreException e) {
             try {
@@ -1818,7 +1832,9 @@ public class SCIMUserManager implements UserManager {
                 carbonUM.deleteRole(groupName);
 
                 //we do not update Identity_SCIM DB here since it is updated in SCIMUserOperationListener's methods.
-                log.info("Group: " + groupName + " is deleted through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("Group: " + groupName + " is deleted through SCIM.");
+                }
 
             } else {
                 if (log.isDebugEnabled()) {
@@ -2331,7 +2347,9 @@ public class SCIMUserManager implements UserManager {
             }
 
             if (updated) {
-                log.info("Group: " + oldGroupDisplayName + " is updated through SCIM.");
+                if (log.isDebugEnabled()) {
+                    log.debug("Group: " + oldGroupDisplayName + " is updated through SCIM.");
+                }
                 // Duplicate may exist in newGroup, to make sure, query the corresponding group again and return it.
                 Group newUpdatedGroup = getGroup(newGroup.getId(), requiredAttributes);
                 return newUpdatedGroup;
@@ -3375,7 +3393,9 @@ public class SCIMUserManager implements UserManager {
 
         GroupDAO groupDAO = new GroupDAO();
         groupDAO.addSCIMGroupAttributesToSCIMDisabledHybridRoles(carbonUM.getTenantId(), attributesList);
-        log.info("Persisted SCIM metadata for hybrid roles created while SCIM is disabled in the user store.");
+        if (log.isDebugEnabled()) {
+            log.debug("Persisted SCIM metadata for hybrid roles created while SCIM is disabled in the user store.");
+        }
     }
 
     /**
